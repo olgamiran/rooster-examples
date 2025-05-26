@@ -14,6 +14,15 @@ import {IMaverickV2Position} from "@maverick/v2-interfaces/contracts/interfaces/
 import {IMaverickV2BoostedPositionFactory} from "@maverick/v2-interfaces/contracts/interfaces/IMaverickV2BoostedPositionFactory.sol";
 import {IMaverickV2BoostedPosition} from "@maverick/v2-interfaces/contracts/interfaces/IMaverickV2BoostedPosition.sol";
 
+interface IYapLiquidityManager {
+    function mintYap(
+        address recipient,
+        IMaverickV2BoostedPosition yap,
+        uint256 targetA,
+        uint256 targetB
+    ) external payable returns (uint256 amountAProvided, uint256 amountBProvided, uint256 amountYapMinted);
+}
+
 abstract contract BaseTest is Test {
     IMaverickV2Factory internal factory;
 
@@ -31,11 +40,13 @@ abstract contract BaseTest is Test {
     IMaverickV2Position public position = IMaverickV2Position(0x0b452E8378B65FD16C0281cfe48Ed9723b8A1950);
     IMaverickV2BoostedPositionFactory public yapFactory =
         IMaverickV2BoostedPositionFactory(0x62914C093bf76a3f4388b49d268a38f1B4938A73);
+    IYapLiquidityManager public yapLiqManager =
+        IYapLiquidityManager(payable(0x5aBBCf6a6bDCdDf1Ab6D89f83509065540705FeB));
 
     address public this_;
 
     function startFork() internal {
-        vm.selectFork(vm.createFork("https://rpc.plume.org", 2126017));
+        vm.selectFork(vm.createFork("https://rpc.plume.org", 2542868));
         factory = IMaverickV2Factory(0x056A588AfdC0cdaa4Cab50d8a4D2940C5D04172E);
         pool = factory.lookup(0, 1)[0];
         wplume = pool.tokenA();
@@ -47,13 +58,13 @@ abstract contract BaseTest is Test {
         deal(address(weth), this_, 1e20);
         deal(address(wplume), this_, 1e20);
 
-        yap = yapFactory.lookup(0, 1)[0];
+        yap = yapFactory.lookup(8, 9)[0];
         yapPool = yap.pool();
         console2.log(yap.name());
         console2.log("Yap TokenA", IERC20Metadata(address(yapPool.tokenA())).symbol());
         console2.log("Yap TokenB", IERC20Metadata(address(yapPool.tokenB())).symbol());
-        deal(address(yapPool.tokenA()), this_, 1e20);
-        deal(address(yapPool.tokenB()), this_, 1e20);
+        deal(address(yapPool.tokenA()), this_, 1e30);
+        deal(address(yapPool.tokenB()), this_, 1e30);
     }
 
     // returns flat liquidity distribution +/- 2 ticks from the active tick
